@@ -149,7 +149,7 @@ test('appready, duplicate loading and stop own exactly their listeners', () => {
   assert.equal(f.playerEvents.count('create'), 0); assert.equal(f.appEvents.count('app'), 1);
   f.appEvents.send('app', { type: 'ready' }); f.appEvents.send('app', { type: 'ready' }); f.run();
   assert.equal(f.playerEvents.count('create'), 1); assert.equal(f.queueEvents.count('set'), 1);
-  assert.equal(f.defaults.bwa_clean_version, '0.2.0');
+  assert.equal(f.defaults.bwa_clean_version, '0.2.1');
   assert.equal(f.L.Manifest.plugins.length, 1); assert.equal(f.L.Manifest.plugins[0].name, 'BWA Clean');
   assert.equal(f.L.Player.play, play); assert.equal(f.L.Player.playlist, playlist);
   const foreign = () => {}; f.playerEvents.follow('create', foreign);
@@ -162,7 +162,7 @@ test('the public companion URL keeps appended Lampa account data in the fragment
   const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
   const install = readme.match(/https:\/\/krajcik\.github\.io\/lampa-online-mod\/bwa-clean\.js\?v=[^\s]+/)[0];
   const request = new URL(install + '&email=DUMMY&logged=true');
-  assert.equal(request.search, '?v=0.2.0'); assert.match(request.hash, /email=DUMMY/);
+  assert.equal(request.search, '?v=0.2.1'); assert.match(request.hash, /email=DUMMY/);
 });
 
 function lazyFallback(f, extra = {}) {
@@ -282,4 +282,14 @@ test('duplicate resolver responses do not duplicate probes or continuations', ()
   assert.equal(f.requests.length, 1);
   response(f.master); response('#EXTM3U\n#EXTINF:6,\nseg.ts');
   assert.equal(calls, 1); assert.equal(f.timers.size, 0);
+});
+
+test('a cloned queue item keeps the resolver receiver and receives its own upgraded URL', () => {
+  const f = fixture({ quality: true });
+  const original = function (done) { this.url = f.low; done(); };
+  const item = video({ season: 1, episode: 2, url: original });
+  f.L.Player.play(video({ season: 1, episode: 1 })); f.L.Player.playlist([f.played[0], item]);
+  const clone = { ...item }, wrapped = item.url;
+  let calls = 0; clone.url(() => calls++);
+  assert.equal(clone.url, f.preferred); assert.equal(item.url, wrapped); assert.equal(calls, 1);
 });

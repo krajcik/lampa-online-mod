@@ -3,7 +3,7 @@
   'use strict';
   if (window.__bwaClean || !window.Lampa) return;
   var L = window.Lampa, selected = null;
-  var state = { version: '0.2.0', ready: false, checks: 0, repairs: 0, stop: stop };
+  var state = { version: '0.2.1', ready: false, checks: 0, repairs: 0, stop: stop };
   var generation = 0, pending = [];
   window.__bwaClean = state;
   L.Manifest.plugins = { type: 'other', name: 'BWA Clean', version: state.version, component: 'bwa_clean', description: 'BWA playback without client VAST and Lampa prerolls' };
@@ -61,6 +61,7 @@
       generation++;
       cancelChecks(false);
       var context = this, token = generation, originalDone = false;
+      var target = context && context.season === item.season && context.episode === item.episode ? context : item;
       var source = L.Storage && L.Storage.get ? L.Storage.get('bwa_balanser', '') : '';
       function current() {
         return generation === token && L.Activity.active() === activity && !component.destroyed &&
@@ -71,8 +72,8 @@
         originalDone = true;
         if (!current()) return;
         var args = arguments, callbackContext = this;
-        if (!state.ready || typeof item.url !== 'string') return callback.apply(this, args);
-        var fallback = item.url, network = new L.Reguest(), finished = false;
+        if (!state.ready || typeof target.url !== 'string') return callback.apply(this, args);
+        var fallback = target.url, network = new L.Reguest(), finished = false;
         var timer = setTimeout(function () { finish(false, 'timeout'); }, 5000);
         state.checks++;
         function cancel(resume) { finish(false, 'cancelled', !resume); }
@@ -98,7 +99,7 @@
         }
         var resolved = false;
         try {
-          component.resolveEpisodeLink(item.season, item.episode, function (url, qualities) {
+          component.resolveEpisodeLink(target.season, target.episode, function (url, qualities) {
             if (finished || resolved) return;
             resolved = true;
             if (!current()) return finish(false, 'stale', true);
@@ -106,7 +107,7 @@
             try {
               var preferredURL = new URL(url), fallbackURL = new URL(fallback);
               if (!/^https?:$/.test(preferredURL.protocol) || preferredURL.username || preferredURL.password || fallbackURL.username || fallbackURL.password) return finish(false, 'unsupported-url');
-              if (item.headers && Object.keys(item.headers).length && preferredURL.origin !== fallbackURL.origin) return finish(false, 'headers');
+              if (target.headers && Object.keys(target.headers).length && preferredURL.origin !== fallbackURL.origin) return finish(false, 'headers');
             } catch (error) { return finish(false, 'unsupported-url'); }
             get(url, function (preferred) {
               var width = masterWidth(preferred, true);
@@ -115,9 +116,9 @@
                 var previousWidth = masterWidth(existing);
                 if (previousWidth < 0 || previousWidth >= width) return finish(false, 'unchanged');
                 // Prefer the adaptive master; never force an ABR rendition or trust a quality label.
-                item.url = url;
-                if (qualities && typeof qualities === 'object') item.quality = qualities;
-                else delete item.quality;
+                target.url = url;
+                if (qualities && typeof qualities === 'object') target.quality = qualities;
+                else delete target.quality;
                 finish(true, 'hd-master');
               });
             });
@@ -184,7 +185,7 @@
     L.Player.listener.follow('create', onCreate);
     L.Player.listener.follow('destroy', onDestroy);
     L.PlayerPlaylist.listener.follow('set', onSet);
-    L.Params.select('bwa_clean_version', { '0.2.0': '0.2.0' }, '0.2.0');
+    L.Params.select('bwa_clean_version', { '0.2.1': '0.2.1' }, '0.2.1');
     L.Params.select('bwa_clean_quality', {}, 'checked=0;repaired=0;last=idle');
     qualityStatus('idle');
     state.ready = true;
