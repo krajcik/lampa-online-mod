@@ -149,7 +149,7 @@ test('appready, duplicate loading and stop own exactly their listeners', () => {
   assert.equal(f.playerEvents.count('create'), 0); assert.equal(f.appEvents.count('app'), 1);
   f.appEvents.send('app', { type: 'ready' }); f.appEvents.send('app', { type: 'ready' }); f.run();
   assert.equal(f.playerEvents.count('create'), 1); assert.equal(f.queueEvents.count('set'), 1);
-  assert.equal(f.defaults.bwa_clean_version, '0.2.1');
+  assert.equal(f.defaults.bwa_clean_version, '0.2.2');
   assert.equal(f.L.Manifest.plugins.length, 1); assert.equal(f.L.Manifest.plugins[0].name, 'BWA Clean');
   assert.equal(f.L.Player.play, play); assert.equal(f.L.Player.playlist, playlist);
   const foreign = () => {}; f.playerEvents.follow('create', foreign);
@@ -162,7 +162,11 @@ test('the public companion URL keeps appended Lampa account data in the fragment
   const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
   const install = readme.match(/https:\/\/krajcik\.github\.io\/lampa-online-mod\/bwa-clean\.js\?v=[^\s]+/)[0];
   const request = new URL(install + '&email=DUMMY&logged=true');
-  assert.equal(request.search, '?v=0.2.1'); assert.match(request.hash, /email=DUMMY/);
+  assert.equal(request.search, '?v=0.2.2'); assert.match(request.hash, /email=DUMMY/);
+});
+
+test('the legacy Lampa extension check recognizes the script as a plugin', () => {
+  assert.match(source, /Lampa\./);
 });
 
 function lazyFallback(f, extra = {}) {
