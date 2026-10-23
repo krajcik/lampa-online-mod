@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = new URL('./', import.meta.url);
 const upstream = JSON.parse(readFileSync(new URL('upstream.json', root), 'utf8'));
-export const version = '0.1.1';
+export const version = '0.1.2';
 
 export function patch(source) {
   if (createHash('sha256').update(source).digest('hex') !== upstream.sha256) throw Error('Upstream SHA256 mismatch; review the new source before patching.');
@@ -26,26 +26,37 @@ export function patch(source) {
     source = source.split(from).join(to);
   }
   const helpers = `
-    var cleanPlaying;
+    var cleanPlaying, cleanQueue = [];
     function playClean(data) {
-      var selected = Object.assign({}, data, { continue_play: true });
+      var selected = Object.assign({}, data, { continue_play: true, online_mod_clean: true });
       delete selected.vast_url; delete selected.vast_msg;
       cleanPlaying = { request: data, selected: selected };
       // Lampa skips the preroll for a continued item already present in its playlist.
-      Lampa.Player.playlist([selected]);
+      cleanQueue = [selected];
+      Lampa.Player.playlist(cleanQueue);
       Lampa.Player.play(selected);
     }
     function playlistClean(items) {
-      Lampa.Player.playlist(items.map(function (item) {
+      cleanQueue = items.map(function (item) {
+        item.online_mod_clean = true;
         return cleanPlaying && (item === cleanPlaying.request || (item.url === cleanPlaying.request.url && item.title === cleanPlaying.request.title)) ? cleanPlaying.selected : item;
-      }));
+      });
+      Lampa.Player.playlist(cleanQueue);
+    }
+    function continueClean(event) {
+      var data = event.data;
+      if (!data || data.online_mod_clean !== true) return;
+      data.continue_play = true;
+      if (cleanQueue.indexOf(data) < 0) cleanQueue = [data];
+      // Native next-episode handling clears PlayerPlaylist before calling Player.play.
+      Lampa.Player.playlist(cleanQueue);
     }
 `;
   replace('    var myIp =', helpers.replace(/\n/g, '\r\n') + '\r\n    var myIp =');
   replace('version: mod_version,', `version: '${version}',`);
   replace("name: Lampa.Lang.translate('online_mod_title_full') + ' - ' + mod_version,", "name: 'Online Mod Clean',");
   replace("    'use strict';", "    'use strict';\r\n    if (window.__onlineModClean) return;");
-  replace('    startPlugin();', `    startPlugin();\r\n    window.__onlineModClean = { version: '${version}', upstream: '${upstream.commit}' };\r\n    Lampa.Params.select('online_mod_clean_version', { '${version}': '${version}' }, '${version}');\r\n    console.warn('Online Mod Clean ${version}: ready');`);
+  replace('    startPlugin();', `    startPlugin();\r\n    Lampa.Player.listener.follow('create', continueClean);\r\n    window.__onlineModClean = { version: '${version}', upstream: '${upstream.commit}' };\r\n    Lampa.Params.select('online_mod_clean_version', { '${version}': '${version}' }, '${version}');\r\n    console.warn('Online Mod Clean ${version}: ready');`);
   return source.replace(/\r\n/g, '\n');
 }
 

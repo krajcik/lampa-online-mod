@@ -58,3 +58,19 @@ test('the clean build is identifiable and does not initialize twice', () => {
   assert.equal(f.sandbox.Lampa.Params.defaults.online_mod_clean_version, version);
   f.run(); assert.equal(f.sandbox.providers, providers);
 });
+
+test('native series continuation recovers its queue after the player destroys the previous video', () => {
+  const f = providerFixture(source, { response: serial }); f.filmix(); f.play();
+  f.next(1);
+  assert.equal(f.played.length, 2);
+  assert.ok(f.beforePlay[1].includes(f.played[1]));
+  assert.equal(f.beforePlay[1].length, 2);
+});
+
+test('the continuation hook leaves unrelated player requests and their queue alone', () => {
+  const f = providerFixture(source);
+  const queue = [{ url: 'https://other.invalid/a.mp4' }], unrelated = { url: 'https://other.invalid/b.mp4' };
+  f.sandbox.Lampa.Player.playlist(queue); f.sandbox.Lampa.Player.play(unrelated);
+  assert.equal(unrelated.continue_play, undefined);
+  assert.equal(f.sandbox.Lampa.PlayerPlaylist.get(), queue);
+});

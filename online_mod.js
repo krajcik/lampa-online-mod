@@ -15,19 +15,30 @@
     }
 
 
-    var cleanPlaying;
+    var cleanPlaying, cleanQueue = [];
     function playClean(data) {
-      var selected = Object.assign({}, data, { continue_play: true });
+      var selected = Object.assign({}, data, { continue_play: true, online_mod_clean: true });
       delete selected.vast_url; delete selected.vast_msg;
       cleanPlaying = { request: data, selected: selected };
       // Lampa skips the preroll for a continued item already present in its playlist.
-      Lampa.Player.playlist([selected]);
+      cleanQueue = [selected];
+      Lampa.Player.playlist(cleanQueue);
       Lampa.Player.play(selected);
     }
     function playlistClean(items) {
-      Lampa.Player.playlist(items.map(function (item) {
+      cleanQueue = items.map(function (item) {
+        item.online_mod_clean = true;
         return cleanPlaying && (item === cleanPlaying.request || (item.url === cleanPlaying.request.url && item.title === cleanPlaying.request.title)) ? cleanPlaying.selected : item;
-      }));
+      });
+      Lampa.Player.playlist(cleanQueue);
+    }
+    function continueClean(event) {
+      var data = event.data;
+      if (!data || data.online_mod_clean !== true) return;
+      data.continue_play = true;
+      if (cleanQueue.indexOf(data) < 0) cleanQueue = [data];
+      // Native next-episode handling clears PlayerPlaylist before calling Player.play.
+      Lampa.Player.playlist(cleanQueue);
     }
 
     var myIp = '';
@@ -16131,7 +16142,7 @@
       resetTemplates();
       var manifest = {
         type: 'video',
-        version: '0.1.1',
+        version: '0.1.2',
         name: 'Online Mod Clean',
         description: Lampa.Lang.translate('online_mod_watch'),
         component: 'online_mod',
@@ -16324,8 +16335,9 @@
     }
 
     startPlugin();
-    window.__onlineModClean = { version: '0.1.1', upstream: '9fbcac14ef8331ca8026a486e92c1a7f59220756' };
-    Lampa.Params.select('online_mod_clean_version', { '0.1.1': '0.1.1' }, '0.1.1');
-    console.warn('Online Mod Clean 0.1.1: ready');
+    Lampa.Player.listener.follow('create', continueClean);
+    window.__onlineModClean = { version: '0.1.2', upstream: '9fbcac14ef8331ca8026a486e92c1a7f59220756' };
+    Lampa.Params.select('online_mod_clean_version', { '0.1.2': '0.1.2' }, '0.1.2');
+    console.warn('Online Mod Clean 0.1.2: ready');
 
 })();

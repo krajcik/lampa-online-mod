@@ -3,6 +3,7 @@ import vm from 'node:vm';
 export function providerFixture(source, { response, failFirst = false, abuse = false, deny = false } = {}) {
   const rows = [], played = [], playlists = [], beforePlay = [], calls = [], values = new Map();
   let currentPlaylist = [];
+  const createListeners = [];
   const params = { defaults: {}, select: (key, _, value) => { params.defaults[key] = value; } };
   const object = { movie: { id: 123, title: 'Fixture', original_title: 'Fixture', release_date: '2020-01-01' } };
   function item() { return { handlers: {}, append() { return this; }, find() { return this; }, on(event, fn) { this.handlers[event] = fn; return this; } }; }
@@ -27,7 +28,7 @@ export function providerFixture(source, { response, failFirst = false, abuse = f
       Lang: { translate: value => value }, Arrays: { getKeys: value => Object.keys(value) },
       Utils: { hash: value => String(value), shortText: value => value, addUrlComponent: (url, value) => url + '?' + value },
       Template: { get: () => item() }, Timeline: { view: () => ({}), render: () => item() }, Favorite: { add() {} },
-      Player: { play: value => { beforePlay.push(currentPlaylist.slice()); played.push(value); }, playlist: value => { currentPlaylist = value; playlists.push(value); } },
+      Player: { listener: { follow: (event, fn) => { if (event === 'create') createListeners.push(fn); } }, play: value => { createListeners.forEach(fn => fn({ data: value })); beforePlay.push(currentPlaylist.slice()); played.push(value); }, playlist: value => { currentPlaylist = value; playlists.push(value); } },
       PlayerPlaylist: { get: () => currentPlaylist },
       Noty: { show: message => { throw Error(message); } },
     },
@@ -57,5 +58,6 @@ export function providerFixture(source, { response, failFirst = false, abuse = f
     },
     lumex() { const provider = new sandbox.providers.lumex2({ ...component, checkMyIp: fn => fn() }, object, {}); provider.search(object, 1); return provider; },
     play(index = 0) { rows[index].handlers['hover:enter'](); },
+    next(index) { const list = currentPlaylist; const data = list[index]; currentPlaylist = []; data.continue_play = true; sandbox.Lampa.Player.play(data); sandbox.Lampa.Player.playlist(list); },
   };
 }
