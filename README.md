@@ -2,10 +2,10 @@
 
 ## BWA Clean
 
-Небольшое самостоятельное дополнение к обычному [BWA](https://bwa.ad/rc), версия 0.1.0:
+Небольшое самостоятельное дополнение к обычному [BWA](https://bwa.ad/rc), версия 0.1.1:
 
 ```text
-https://krajcik.github.io/lampa-online-mod/bwa-clean.js?v=0.1.0#
+https://krajcik.github.io/lampa-online-mod/bwa-clean.js?v=0.1.1#
 ```
 
 Оставьте обычный BWA включённым и добавьте эту ссылку отдельным расширением,

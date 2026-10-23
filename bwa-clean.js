@@ -3,8 +3,9 @@
   'use strict';
   if (window.__bwaClean || !window.Lampa) return;
   var L = window.Lampa, selected = null;
-  var state = { version: '0.1.0', ready: false, stop: stop };
+  var state = { version: '0.1.1', ready: false, stop: stop };
   window.__bwaClean = state;
+  L.Manifest.plugins = { type: 'other', name: 'BWA Clean', version: state.version, component: 'bwa_clean', description: 'BWA playback without client VAST and Lampa prerolls' };
 
   function inBwa() {
     var activity = L.Activity.active();
@@ -71,7 +72,7 @@
     L.Player.listener.follow('create', onCreate);
     L.Player.listener.follow('destroy', onDestroy);
     L.PlayerPlaylist.listener.follow('set', onSet);
-    L.Params.select('bwa_clean_version', { '0.1.0': '0.1.0' }, '0.1.0');
+    L.Params.select('bwa_clean_version', { '0.1.1': '0.1.1' }, '0.1.1');
     state.ready = true;
   }
 
