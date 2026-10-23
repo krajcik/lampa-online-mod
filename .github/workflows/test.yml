@@ -13,4 +13,5 @@ jobs:
           node-version: 22
       - run: node build.mjs
       - run: node --check online_mod.js
+      - run: node --check bwa-clean.js
       - run: node --test tests/*.test.mjs
