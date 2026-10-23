@@ -32,6 +32,13 @@ test('Filmix does not synthesize 4K when the response has no declared quality va
   assert.equal(f.played[0].url, 'https://media.invalid/480.mp4'); assert.deepEqual(Object.keys(f.played[0].quality), []);
 });
 
+test('server quality variants outside the supported positive 4K range are rejected', () => {
+  const response = structuredClone(serial);
+  response.player_links.playlist[1].Voice[1].qualities = [0, -720, Infinity, NaN, 480, 1080, 2160, 99999];
+  const f = providerFixture(source, { response }); f.filmix(); f.play();
+  assert.deepEqual(Object.keys(f.played[0].quality).sort(), ['1080p', '2160p', '480p']);
+});
+
 for (const isSeries of [false, true]) {
   test(`Lumex Ads ${isSeries ? 'series' : 'movie'} leaves VAST out of play and playlist options`, () => {
     const media = { url: 'https://api.invalid/item', title: 'Fixture', season: 1, episode: 1, subtitles: [{ label: 'English', url: 'https://media.invalid/sub.vtt' }], vast_url: 'https://ads.invalid/pre.xml', vast_msg: 'advert' };

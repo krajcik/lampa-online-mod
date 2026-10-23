@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = new URL('./', import.meta.url);
 const upstream = JSON.parse(readFileSync(new URL('upstream.json', root), 'utf8'));
-export const version = '0.1.2';
+export const version = '0.1.3';
 
 export function patch(source) {
   if (createHash('sha256').update(source).digest('hex') !== upstream.sha256) throw Error('Upstream SHA256 mismatch; review the new source before patching.');
@@ -12,8 +12,8 @@ export function patch(source) {
     if (source.split(from).length !== 2) throw Error('Patch boundary changed: ' + from.trim().slice(0, 80));
     source = source.replace(from, to);
   }
-  replace('return !isNaN(qualitys) && qualitys <= filmix_max_qualitie;', 'return !isNaN(qualitys) && (!low_quality || qualitys <= filmix_max_qualitie);');
-  replace('return !isNaN(quality) && quality <= filmix_max_qualitie;', 'return !isNaN(quality) && (!low_quality || quality <= filmix_max_qualitie);');
+  replace('return !isNaN(qualitys) && qualitys <= filmix_max_qualitie;', 'return isFinite(qualitys) && qualitys > 0 && qualitys <= 2160 && (!low_quality || qualitys <= filmix_max_qualitie);');
+  replace('return !isNaN(quality) && quality <= filmix_max_qualitie;', 'return isFinite(quality) && quality > 0 && quality <= 2160 && (!low_quality || quality <= filmix_max_qualitie);');
   for (const [owner, spaces] of [['element', 16], ['elem', 22]]) {
     for (const key of ['vast_url', 'vast_msg']) replace(' '.repeat(spaces) + key + ': ' + owner + '.' + key + ',\r\n', '');
   }

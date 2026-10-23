@@ -5294,7 +5294,7 @@
                 var file = episodes[episode_id];
                 ++epis_num;
                 var quality_eps = file.qualities.filter(function (qualitys) {
-                  return !isNaN(qualitys) && (!low_quality || qualitys <= filmix_max_qualitie);
+                  return isFinite(qualitys) && qualitys > 0 && qualitys <= 2160 && (!low_quality || qualitys <= filmix_max_qualitie);
                 });
                 quality_eps.sort(function (a, b) {
                   return b - a;
@@ -5375,7 +5375,7 @@
               _quality_eps = _quality_eps[1].split(',').map(function (quality) {
                 return parseInt(quality);
               }).filter(function (quality) {
-                return !isNaN(quality) && (!low_quality || quality <= filmix_max_qualitie);
+                return isFinite(quality) && quality > 0 && quality <= 2160 && (!low_quality || quality <= filmix_max_qualitie);
               });
 
               _quality_eps.sort(function (a, b) {
@@ -16142,7 +16142,7 @@
       resetTemplates();
       var manifest = {
         type: 'video',
-        version: '0.1.2',
+        version: '0.1.3',
         name: 'Online Mod Clean',
         description: Lampa.Lang.translate('online_mod_watch'),
         component: 'online_mod',
@@ -16336,8 +16336,8 @@
 
     startPlugin();
     Lampa.Player.listener.follow('create', continueClean);
-    window.__onlineModClean = { version: '0.1.2', upstream: '9fbcac14ef8331ca8026a486e92c1a7f59220756' };
-    Lampa.Params.select('online_mod_clean_version', { '0.1.2': '0.1.2' }, '0.1.2');
-    console.warn('Online Mod Clean 0.1.2: ready');
+    window.__onlineModClean = { version: '0.1.3', upstream: '9fbcac14ef8331ca8026a486e92c1a7f59220756' };
+    Lampa.Params.select('online_mod_clean_version', { '0.1.3': '0.1.3' }, '0.1.3');
+    console.warn('Online Mod Clean 0.1.3: ready');
 
 })();
