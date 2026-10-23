@@ -14,6 +14,22 @@
       return str.indexOf(searchString, start) === start;
     }
 
+
+    var cleanPlaying;
+    function playClean(data) {
+      var selected = Object.assign({}, data, { continue_play: true });
+      delete selected.vast_url; delete selected.vast_msg;
+      cleanPlaying = { request: data, selected: selected };
+      // Lampa skips the preroll for a continued item already present in its playlist.
+      Lampa.Player.playlist([selected]);
+      Lampa.Player.play(selected);
+    }
+    function playlistClean(items) {
+      Lampa.Player.playlist(items.map(function (item) {
+        return cleanPlaying && (item === cleanPlaying.request || (item.url === cleanPlaying.request.url && item.title === cleanPlaying.request.title)) ? cleanPlaying.selected : item;
+      }));
+    }
+
     var myIp = '';
     var currentFanserialsHost = decodeSecret([95, 57, 28, 42, 55, 125, 28, 124, 75, 83, 86, 35, 27, 63, 54, 46, 82, 63, 9, 27, 88, 63, 15], atob('RnVja0Zhbg=='));
 
@@ -1118,7 +1134,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -1144,9 +1160,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -1567,7 +1583,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -1593,9 +1609,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -2543,7 +2559,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -2569,9 +2585,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -3783,8 +3799,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -4225,8 +4241,8 @@
 
               if (playlist.length > 1) first.playlist = playlist;
               if (options && options.runas) Lampa.Player.runas(options.runas);else if (lampa_player) Lampa.Player.runas('lampa');
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -4780,7 +4796,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -4806,9 +4822,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -5526,8 +5542,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -6100,8 +6116,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -6779,7 +6795,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -6805,9 +6821,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -7530,7 +7546,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -7556,9 +7572,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -8119,7 +8135,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -8145,9 +8161,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -8735,8 +8751,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -9420,8 +9436,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -9905,8 +9921,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -10351,7 +10367,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -10376,9 +10392,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -10820,8 +10836,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -11250,8 +11266,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -11826,7 +11842,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -11852,9 +11868,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -12534,7 +12550,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -12559,9 +12575,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -13031,7 +13047,7 @@
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-              Lampa.Player.play(first);
+              playClean(first);
 
               if (element.season && Lampa.Platform.version) {
                 var playlist = [];
@@ -13057,9 +13073,9 @@
                     playlist.push(cell);
                   }
                 });
-                Lampa.Player.playlist(playlist);
+                playlistClean(playlist);
               } else {
-                Lampa.Player.playlist([first]);
+                playlistClean([first]);
               }
 
               if (viewed.indexOf(hash_file) == -1) {
@@ -13862,8 +13878,8 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+              playClean(first);
+              playlistClean(playlist);
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
@@ -16115,8 +16131,8 @@
       resetTemplates();
       var manifest = {
         type: 'video',
-        version: mod_version,
-        name: Lampa.Lang.translate('online_mod_title_full') + ' - ' + mod_version,
+        version: '0.1.1',
+        name: 'Online Mod Clean',
         description: Lampa.Lang.translate('online_mod_watch'),
         component: 'online_mod',
         onContextMenu: function onContextMenu(object) {
@@ -16308,9 +16324,8 @@
     }
 
     startPlugin();
-    window.__onlineModClean = { version: '0.1.0', upstream: '9fbcac14ef8331ca8026a486e92c1a7f59220756' };
-    Lampa.Manifest.plugins.name = 'Online Mod Clean';
-    Lampa.Manifest.plugins.version = '0.1.0';
-    console.warn('Online Mod Clean 0.1.0: ready');
+    window.__onlineModClean = { version: '0.1.1', upstream: '9fbcac14ef8331ca8026a486e92c1a7f59220756' };
+    Lampa.Params.select('online_mod_clean_version', { '0.1.1': '0.1.1' }, '0.1.1');
+    console.warn('Online Mod Clean 0.1.1: ready');
 
 })();

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { providerFixture } from './provider-fixture.mjs';
+import { version } from '../build.mjs';
 
 const source = readFileSync(new URL('../online_mod.js', import.meta.url), 'utf8');
 const film = { player_links: { movie: { voice: { translation: 'Voice', link: 'https://media.invalid/movie_[480,720,1080,2160].mp4' } } } };
@@ -13,7 +14,10 @@ for (const [name, response] of [['movie', film], ['series', serial]]) {
     assert.equal(f.sandbox.window.mod_filmix.max_qualitie, 480);
     assert.deepEqual(Object.keys(f.played[0].quality).sort(), ['1080p', '2160p', '480p', '720p']);
     assert.match(f.played[0].url, /2160\.mp4$/);
-    if (name === 'series') { assert.equal(f.playlists[0].length, 2); assert.deepEqual(Object.keys(f.playlists[0][1].quality).sort(), ['1080p', '480p']); }
+    if (name === 'series') { const list = f.playlists.at(-1); assert.equal(list.length, 2); assert.deepEqual(Object.keys(list[1].quality).sort(), ['1080p', '480p']); }
+    assert.equal(f.played[0].continue_play, true);
+    assert.ok(f.beforePlay[0].includes(f.played[0]));
+    assert.ok(f.sandbox.Lampa.PlayerPlaylist.get().includes(f.played[0]));
   });
 }
 
@@ -35,8 +39,10 @@ for (const isSeries of [false, true]) {
     const f = providerFixture(source, { response }); f.lumex(); f.play();
     assert.equal(f.played.length, 1); assert.equal(f.played[0].vast_url, undefined); assert.equal(f.played[0].vast_msg, undefined);
     assert.equal(f.played[0].subtitles[0].url, 'https://media.invalid/sub.vtt');
-    for (const item of f.playlists[0]) { assert.equal(item.vast_url, undefined); assert.equal(item.vast_msg, undefined); }
-    if (isSeries) { const next = f.playlists[0][1]; let resolved = false; next.url(() => { resolved = true; }); assert.equal(resolved, true); assert.equal(next.url, 'https://media.invalid/2160.m3u8'); assert.equal(next.vast_url, undefined); }
+    const list = f.playlists.at(-1);
+    for (const item of list) { assert.equal(item.vast_url, undefined); assert.equal(item.vast_msg, undefined); }
+    assert.equal(f.played[0].continue_play, true); assert.ok(f.beforePlay[0].includes(f.played[0])); assert.ok(list.includes(f.played[0]));
+    if (isSeries) { const next = list[1]; let resolved = false; next.url(() => { resolved = true; }); assert.equal(resolved, true); assert.equal(next.url, 'https://media.invalid/2160.m3u8'); assert.equal(next.vast_url, undefined); }
   });
 }
 
@@ -48,7 +54,7 @@ test('a server refusal remains an error without playback or additional requests'
 
 test('the clean build is identifiable and does not initialize twice', () => {
   const f = providerFixture(source); const providers = f.sandbox.providers;
-  assert.equal(f.sandbox.window.__onlineModClean.version, '0.1.0');
-  assert.equal(f.sandbox.Lampa.Manifest.plugins.name, 'Online Mod Clean');
+  assert.equal(f.sandbox.window.__onlineModClean.version, version);
+  assert.equal(f.sandbox.Lampa.Params.defaults.online_mod_clean_version, version);
   f.run(); assert.equal(f.sandbox.providers, providers);
 });

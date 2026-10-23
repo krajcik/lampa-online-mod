@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = new URL('./', import.meta.url);
 const upstream = JSON.parse(readFileSync(new URL('upstream.json', root), 'utf8'));
-export const version = '0.1.0';
+export const version = '0.1.1';
 
 export function patch(source) {
   if (createHash('sha256').update(source).digest('hex') !== upstream.sha256) throw Error('Upstream SHA256 mismatch; review the new source before patching.');
@@ -17,8 +17,35 @@ export function patch(source) {
   for (const [owner, spaces] of [['element', 16], ['elem', 22]]) {
     for (const key of ['vast_url', 'vast_msg']) replace(' '.repeat(spaces) + key + ': ' + owner + '.' + key + ',\r\n', '');
   }
+  for (const [from, to, count] of [
+    ['Lampa.Player.play(first);', 'playClean(first);', 21],
+    ['Lampa.Player.playlist(playlist);', 'playlistClean(playlist);', 21],
+    ['Lampa.Player.playlist([first]);', 'playlistClean([first]);', 11],
+  ]) {
+    if (source.split(from).length - 1 !== count) throw Error('Player call sites changed; review the patch.');
+    source = source.split(from).join(to);
+  }
+  const helpers = `
+    var cleanPlaying;
+    function playClean(data) {
+      var selected = Object.assign({}, data, { continue_play: true });
+      delete selected.vast_url; delete selected.vast_msg;
+      cleanPlaying = { request: data, selected: selected };
+      // Lampa skips the preroll for a continued item already present in its playlist.
+      Lampa.Player.playlist([selected]);
+      Lampa.Player.play(selected);
+    }
+    function playlistClean(items) {
+      Lampa.Player.playlist(items.map(function (item) {
+        return cleanPlaying && (item === cleanPlaying.request || (item.url === cleanPlaying.request.url && item.title === cleanPlaying.request.title)) ? cleanPlaying.selected : item;
+      }));
+    }
+`;
+  replace('    var myIp =', helpers.replace(/\n/g, '\r\n') + '\r\n    var myIp =');
+  replace('version: mod_version,', `version: '${version}',`);
+  replace("name: Lampa.Lang.translate('online_mod_title_full') + ' - ' + mod_version,", "name: 'Online Mod Clean',");
   replace("    'use strict';", "    'use strict';\r\n    if (window.__onlineModClean) return;");
-  replace('    startPlugin();', `    startPlugin();\r\n    window.__onlineModClean = { version: '${version}', upstream: '${upstream.commit}' };\r\n    Lampa.Manifest.plugins.name = 'Online Mod Clean';\r\n    Lampa.Manifest.plugins.version = '${version}';\r\n    console.warn('Online Mod Clean ${version}: ready');`);
+  replace('    startPlugin();', `    startPlugin();\r\n    window.__onlineModClean = { version: '${version}', upstream: '${upstream.commit}' };\r\n    Lampa.Params.select('online_mod_clean_version', { '${version}': '${version}' }, '${version}');\r\n    console.warn('Online Mod Clean ${version}: ready');`);
   return source.replace(/\r\n/g, '\n');
 }
 
